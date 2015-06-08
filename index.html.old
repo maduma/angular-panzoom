@@ -1,0 +1,35 @@
+<html>
+
+<head>
+</head>
+<style>
+    .header {
+        height: 50px;
+    }
+    .main {
+        margin-left: auto;
+        margin-right: auto;
+        width: 880;
+        height: 495;
+        background-color: whitesmoke;
+        border-radius: 10px;
+    }
+    button {
+        display: block;
+        margin-top: 1em;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+
+<body>
+    <div class="header"></div>
+    <div class="main" id="main">
+        <canvas class="image" id="image" width="880" height="495"></canvas>
+    </div>
+    <button id="crop">crop</button>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
