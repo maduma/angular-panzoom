@@ -9,7 +9,9 @@ angular
 function panzoom() {
 
     var directive = {
-        scope: {},
+        scope: {
+            src: '@',
+        },
         restrict: 'A',
         link: link
     };
@@ -18,8 +20,9 @@ function panzoom() {
     return directive;
     
     function link(scope, element, attrs) {
-        console.log(scope);
+        var src = scope.src;
         var zoom = 0.04;
+        console.log(src);
         
         var canvas = element[0];
         var buffer = document.createElement('canvas');
@@ -30,7 +33,7 @@ function panzoom() {
         var trans = {x: 0, y: 0, s: 1};
         
         // first render
-        render();
+        loadBuffer(src);
         
         // bind events for droping image on canvas
         canvas.addEventListener('dragover', function(e) {
@@ -54,12 +57,20 @@ function panzoom() {
         // bind events for zoom
         canvas.addEventListener('wheel', doScale);
         
-        // read dropped image, save in the buffer then render it on the canvas
+        // read dropped image, load the buffer then render it on the canvas
         function readImage(file) {
             var reader = new FileReader();
             reader.onload = function(e) {
                 var dataURI = e.target.result;
                 console.log(dataURI);
+                loadBuffer(dataURI);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // draw dataURI in a buffer and render
+        function loadBuffer(dataURI) {
+            if (typeof dataURI !== 'undefined') {
                 var image = document.createElement('img');
                 image.src = dataURI;
                 image.addEventListener('load', function() {
@@ -70,8 +81,9 @@ function panzoom() {
                     initTrans();
                     render();
                 });
-            };
-            reader.readAsDataURL(file);
+            } else {
+                render();
+            }
         }
         
         // initial tranformation to center the image
