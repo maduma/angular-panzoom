@@ -11,6 +11,7 @@ function panzoom() {
     var directive = {
         scope: {
             src: '@',
+            stroke: '@'
         },
         restrict: 'A',
         link: link
@@ -21,6 +22,10 @@ function panzoom() {
     
     function link(scope, element, attrs) {
         var src = scope.src;
+        var stroke = scope.stroke;
+        if (typeof stroke === 'undefined') {
+            stroke = 10;
+        }
         var zoom = 0.04;
         console.log(src);
         
@@ -90,9 +95,9 @@ function panzoom() {
         function initTrans() {
             // scaling
             if (Math.max(buffer.width, buffer.height) === buffer.width) {
-                trans.s = canvas.width / buffer.width;
+                trans.s = (canvas.width - 2 * stroke) / buffer.width;
             } else {
-                trans.s = canvas.height / buffer.height;
+                trans.s = (canvas.height  - 2 * stroke) / buffer.height;
             }
             // translate to center the image
             trans.x = (canvas.width - buffer.width * trans.s) / 2;
@@ -110,7 +115,10 @@ function panzoom() {
             
             // draw delimitation
             ctx.strokeStyle = 'grey';
-            ctx.strokeRect(40, 22, 800, 450);
+            ctx.strokeRect(
+                stroke, stroke,
+                canvas.width - stroke * 2, canvas.height - stroke * 2
+            );
         }
         
         function startPanning(event) {
