@@ -10,6 +10,7 @@ function panzoom() {
 
     var directive = {
         scope: {
+            uri: '=',
             src: '@',
             stroke: '@'
         },
@@ -21,13 +22,11 @@ function panzoom() {
     return directive;
     
     function link(scope, element, attrs) {
-        var src = scope.src;
-        var stroke = scope.stroke;
-        if (typeof stroke === 'undefined') {
-            stroke = 10;
+        if (typeof scope.stroke === 'undefined') {
+            scope.stroke = 30;
         }
         var zoom = 0.04;
-        console.log(src);
+        var lineWidth = 1;
         
         var canvas = element[0];
         var buffer = document.createElement('canvas');
@@ -38,7 +37,21 @@ function panzoom() {
         var trans = {x: 0, y: 0, s: 1};
         
         // first render
-        loadBuffer(src);
+        loadBuffer(scope.src);
+        
+        // listen for uri change
+        scope.$watch('uri', function() {
+            if (typeof scope.uri !== 'undefined') {
+                loadBuffer(scope.uri);
+            }
+        });
+        
+        // bind ENTER key event to crop
+        window.addEventListener('keypress', function(event) {
+            if (event.charCode === 13) { // ENTER KEY
+                toDataURI();
+            }
+        });
         
         // bind events for droping image on canvas
         canvas.addEventListener('dragover', function(e) {
@@ -50,6 +63,7 @@ function panzoom() {
             console.log('name: ' + file.name + ', type: ' + file.type);
             // only read image type file
             if (file.type.match(/^image\//)) {
+                initTrans();
                 readImage(file);    
             }
         }, true);
@@ -67,17 +81,16 @@ function panzoom() {
             var reader = new FileReader();
             reader.onload = function(e) {
                 var dataURI = e.target.result;
-                console.log(dataURI);
                 loadBuffer(dataURI);
             };
             reader.readAsDataURL(file);
         }
         
-        // draw dataURI in a buffer and render
-        function loadBuffer(dataURI) {
-            if (typeof dataURI !== 'undefined') {
+        // draw image in a buffer and render
+        function loadBuffer(src) {
+            if (typeof src !== 'undefined') {
                 var image = document.createElement('img');
-                image.src = dataURI;
+                image.src = src;
                 image.addEventListener('load', function() {
                     buffer.width = image.width;
                     buffer.height = image.height;
@@ -95,9 +108,9 @@ function panzoom() {
         function initTrans() {
             // scaling
             if (Math.max(buffer.width, buffer.height) === buffer.width) {
-                trans.s = (canvas.width - 2 * stroke) / buffer.width;
+                trans.s = (canvas.width - scope.stroke * 2) / buffer.width;
             } else {
-                trans.s = (canvas.height  - 2 * stroke) / buffer.height;
+                trans.s = (canvas.height - scope.stroke * 2) / buffer.height;
             }
             // translate to center the image
             trans.x = (canvas.width - buffer.width * trans.s) / 2;
@@ -115,10 +128,23 @@ function panzoom() {
             
             // draw delimitation
             ctx.strokeStyle = 'grey';
+            ctx.lineWidth = lineWidth;
             ctx.strokeRect(
-                stroke, stroke,
-                canvas.width - stroke * 2, canvas.height - stroke * 2
+                scope.stroke - lineWidth,
+                scope.stroke - lineWidth,
+                canvas.width - scope.stroke * 2 + lineWidth * 2,
+                canvas.height - scope.stroke * 2 + lineWidth * 2
             );
+        }
+        
+        function toDataURI() {
+            var out = document.createElement('canvas');
+            out.width = canvas.width - 2 * scope.stroke;
+            out.height = canvas.height - 2 * scope.stroke;
+            var ctx = out.getContext('2d');
+            ctx.drawImage(canvas, - scope.stroke, - scope.stroke);
+            scope.uri = out.toDataURL();
+            scope.$apply();
         }
         
         function startPanning(event) {

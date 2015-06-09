@@ -7,9 +7,9 @@
     <title>Panzoom</title>
 </head>
 
-<body>
+<body ng-controller="controller as main">
     <div class="header"></div>
-    <canvas ma-panzoom width="860" height="510" src="16x9.png" stroke="30"></canvas>
+    <canvas ma-panzoom width="860" height="510" uri="main.uri" src="16x9.png" stroke="30" tabindex='1'></canvas>
     <script src="bower_components/angular/angular.js"></script>
     <script src="angular-panzoom.js"></script>
     <script src="main.js"></script>
